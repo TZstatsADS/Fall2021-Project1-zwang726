@@ -1,0 +1,604 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={R Notebook},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifluatex
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{R Notebook}
+\author{}
+\date{\vspace{-2.5em}}
+
+\begin{document}
+\maketitle
+
+\hypertarget{this-report-aims-at-finding-out-what-are-the-different-schools-of-philosophy-usually-write.-the-data-used-is-the-dataset-for-philosophy-data-project.-it-contains-11-columns-and-360808-unique-values}{%
+\paragraph{This report aims at finding out what are the different
+schools of Philosophy usually write. The data used is the dataset for
+Philosophy Data Project. It contains 11 columns and 360808 unique
+values}\label{this-report-aims-at-finding-out-what-are-the-different-schools-of-philosophy-usually-write.-the-data-used-is-the-dataset-for-philosophy-data-project.-it-contains-11-columns-and-360808-unique-values}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{setwd}\NormalTok{(}\StringTok{"\textasciitilde{}/Downloads"}\NormalTok{)}
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\FunctionTok{library}\NormalTok{(dplyr)}
+\FunctionTok{library}\NormalTok{(tm)}
+\FunctionTok{library}\NormalTok{(wordcloud)}
+\FunctionTok{library}\NormalTok{(RColorBrewer)}
+\FunctionTok{library}\NormalTok{(beeswarm)}
+\FunctionTok{library}\NormalTok{(sentimentr)}
+\FunctionTok{library}\NormalTok{(tidytext)}
+\FunctionTok{library}\NormalTok{(glue)}
+\FunctionTok{library}\NormalTok{(syuzhet)}
+\FunctionTok{library}\NormalTok{(caret)}
+\FunctionTok{library}\NormalTok{(RTextTools)}
+\NormalTok{df}\OtherTok{\textless{}{-}}\FunctionTok{read.csv}\NormalTok{(}\StringTok{"philosophy\_data.csv"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{exploratory-data-analysis}{%
+\subsection{Exploratory Data Analysis}\label{exploratory-data-analysis}}
+
+First,I examined the data to see the columns and total number of rows,
+and see the unique authors, schools and title, and then process the raw
+textual data by cleaning data, removing stopwords and creating a tidy
+version of texts which is saved in \$ output \$ file.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{dim}\NormalTok{(df)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 360808     11
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{colnames}\NormalTok{(df)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  [1] "title"                     "author"                   
+##  [3] "school"                    "sentence_spacy"           
+##  [5] "sentence_str"              "original_publication_date"
+##  [7] "corpus_edition_date"       "sentence_length"          
+##  [9] "sentence_lowered"          "tokenized_txt"            
+## [11] "lemmatized_str"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{unique}\NormalTok{(df[}\FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}author\textquotesingle{}}\NormalTok{)])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                 author
+## 1                Plato
+## 38367        Aristotle
+## 87146            Locke
+## 96031             Hume
+## 104343        Berkeley
+## 107077         Spinoza
+## 110870         Leibniz
+## 115897       Descartes
+## 117029     Malebranche
+## 130026         Russell
+## 135099           Moore
+## 138767    Wittgenstein
+## 145817           Lewis
+## 158937           Quine
+## 166310          Popper
+## 170988          Kripke
+## 185451        Foucault
+## 200691         Derrida
+## 206690         Deleuze
+## 219230   Merleau-Ponty
+## 226822         Husserl
+## 232564       Heidegger
+## 247803            Kant
+## 261931          Fichte
+## 267239           Hegel
+## 289939            Marx
+## 303428           Lenin
+## 307897           Smith
+## 319590         Ricardo
+## 322680          Keynes
+## 326091       Epictetus
+## 326414 Marcus Aurelius
+## 328626       Nietzsche
+## 342174  Wollstonecraft
+## 344733        Beauvoir
+## 357750           Davis
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{unique}\NormalTok{(df[}\FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}school\textquotesingle{}}\NormalTok{)])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                 school
+## 1                plato
+## 38367        aristotle
+## 87146       empiricism
+## 107077     rationalism
+## 130026        analytic
+## 185451     continental
+## 219230   phenomenology
+## 247803 german_idealism
+## 289939       communism
+## 307897      capitalism
+## 326091        stoicism
+## 328626       nietzsche
+## 342174        feminism
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{unique}\NormalTok{(df[}\FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}title\textquotesingle{}}\NormalTok{)])}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                                                          title
+## 1                                       Plato - Complete Works
+## 38367                               Aristotle - Complete Works
+## 87146                            Second Treatise On Government
+## 88289                     Essay Concerning Human Understanding
+## 96031                               A Treatise Of Human Nature
+## 103078                   Dialogues Concerning Natural Religion
+## 104343                                         Three Dialogues
+## 106037 A Treatise Concerning The Principles Of Human Knowledge
+## 107077                                                  Ethics
+## 110381                     On The Improvement Of Understanding
+## 110870                                                Theodicy
+## 115897                                     Discourse On Method
+## 116237                         Meditations On First Philosophy
+## 117029                                  The Search After Truth
+## 130026                                    The Analysis Of Mind
+## 133539                              The Problems Of Philosophy
+## 135099                                   Philosophical Studies
+## 138767                            Philosophical Investigations
+## 144605                          Tractatus Logico-Philosophicus
+## 145817                                          Lewis - Papers
+## 158937                                            Quintessence
+## 166310                       The Logic Of Scientific Discovery
+## 170988                                    Naming And Necessity
+## 173669                                  Philosophical Troubles
+## 183467                                            On Certainty
+## 185451                                 The Birth Of The Clinic
+## 187969                                      History Of Madness
+## 196002                                     The Order Of Things
+## 200691                                  Writing And Difference
+## 206690                               Difference And Repetition
+## 212551                                            Anti-Oedipus
+## 219230                         The Phenomenology Of Perception
+## 226822   The Crisis Of The European Sciences And Phenomenology
+## 231654                               The Idea Of Phenomenology
+## 232564                                          Being And Time
+## 241069                                    Off The Beaten Track
+## 247803                            Critique Of Practical Reason
+## 250255                                   Critique Of Judgement
+## 254459                                 Critique Of Pure Reason
+## 261931                                    The System Of Ethics
+## 267239                                        Science Of Logic
+## 277917                             The Phenomenology Of Spirit
+## 285016                     Elements Of The Philosophy Of Right
+## 289939                                                 Capital
+## 302935                                 The Communist Manifesto
+## 303428                                Essential Works Of Lenin
+## 307897                                   The Wealth Of Nations
+## 319590     On The Principles Of Political Economy And Taxation
+## 322680     A General Theory Of Employment, Interest, And Money
+## 326091                                             Enchiridion
+## 326414                                             Meditations
+## 328626                                          The Antichrist
+## 329796                                    Beyond Good And Evil
+## 331702                                               Ecce Homo
+## 333206                                   Twilight Of The Idols
+## 336258                                  Thus Spake Zarathustra
+## 342174                      Vindication Of The Rights Of Woman
+## 344733                                          The Second Sex
+## 357750                                  Women, Race, And Class
+\end{verbatim}
+
+Visualize the data group by school to get a sense of how many values of
+each school in contained in this dataset. We can see that analytic,
+aristotle, germain\_idealism, and plato has the most counts among the 11
+schools.
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-4-1.pdf}
+
+To use the tm package we first transfrom the dataset to a corpus and
+next we normalize the texts in the sentence\_lowered using a series of
+pre-processing steps: 1. Remove numbers 2. Remove punctuation marks and
+stopwords 3. Remove extra whitespaces. After the above transformations
+the first review looks like:
+
+\begin{verbatim}
+## <<SimpleCorpus>>
+## Metadata:  corpus specific: 1, document level (indexed): 0
+## Content:  documents: 1
+## 
+## [1]  whats new socrates make leave usual haunts lyceum spend time king archons court
+\end{verbatim}
+
+To analyze the textual data, we use a Document-Term Matrix (DTM)
+representation.To reduce the dimension of the DTM, we can emove the less
+frequent terms such that the sparsity is less than 0.99.
+
+\begin{verbatim}
+## <<DocumentTermMatrix (documents: 360808, terms: 94453)>>
+## Non-/sparse entries: 4092757/34075305267
+## Sparsity           : 100%
+## Maximal term length: 58
+## Weighting          : term frequency (tf)
+\end{verbatim}
+
+\begin{verbatim}
+## <<DocumentTermMatrix (documents: 6, terms: 6)>>
+## Non-/sparse entries: 0/36
+## Sparsity           : 100%
+## Maximal term length: 8
+## Weighting          : term frequency (tf)
+## Sample             :
+##      Terms
+## Docs  ventures main wiser became denounce found
+##   500        0    0     0      0        0     0
+##   501        0    0     0      0        0     0
+##   502        0    0     0      0        0     0
+##   503        0    0     0      0        0     0
+##   504        0    0     0      0        0     0
+##   505        0    0     0      0        0     0
+\end{verbatim}
+
+\begin{verbatim}
+## <<DocumentTermMatrix (documents: 360808, terms: 152)>>
+## Non-/sparse entries: 1081776/53761040
+## Sparsity           : 98%
+## Maximal term length: 13
+## Weighting          : term frequency (tf)
+\end{verbatim}
+
+The first review now looks like:
+
+\begin{verbatim}
+## <<DocumentTermMatrix (documents: 1, terms: 20)>>
+## Non-/sparse entries: 3/17
+## Sparsity           : 85%
+## Maximal term length: 9
+## Weighting          : term frequency (tf)
+## Sample             :
+##     Terms
+## Docs called else know long make much must new say time
+##    1      0    0    0    0    1    0    0   1   0    1
+\end{verbatim}
+
+Inspect the frequent terms:
+
+\begin{verbatim}
+##   [1] "make"          "new"           "time"          "say"          
+##   [5] "else"          "must"          "know"          "called"       
+##   [9] "long"          "much"          "rather"        "one"          
+##  [13] "think"         "knowledge"     "man"           "subject"      
+##  [17] "thing"         "men"           "first"         "good"         
+##  [21] "just"          "others"        "possible"      "right"        
+##  [25] "take"          "way"           "become"        "great"        
+##  [29] "seems"         "will"          "may"           "true"         
+##  [33] "things"        "makes"         "case"          "nothing"      
+##  [37] "yet"           "like"          "matter"        "mind"         
+##  [41] "perhaps"       "reason"        "whether"       "anything"     
+##  [45] "even"          "people"        "without"       "clear"        
+##  [49] "come"          "thought"       "far"           "part"         
+##  [53] "difference"    "let"           "hand"          "since"        
+##  [57] "ideas"         "use"           "indeed"        "now"          
+##  [61] "shall"         "find"          "well"          "every"        
+##  [65] "everything"    "kind"          "form"          "can"          
+##  [69] "law"           "already"       "said"          "however"      
+##  [73] "god"           "many"          "truth"         "two"          
+##  [77] "upon"          "mean"          "also"          "state"        
+##  [81] "cause"         "according"     "another"       "different"    
+##  [85] "question"      "present"       "never"         "point"        
+##  [89] "experience"    "found"         "give"          "though"       
+##  [93] "nature"        "neither"       "merely"        "something"    
+##  [97] "means"         "contrary"      "either"        "fact"         
+## [101] "general"       "principle"     "see"           "place"        
+## [105] "made"          "together"      "number"        "always"       
+## [109] "parts"         "order"         "still"         "example"      
+## [113] "sense"         "object"        "words"         "given"        
+## [117] "life"          "work"          "real"          "understanding"
+## [121] "whole"         "power"         "particular"    "might"        
+## [125] "language"      "therefore"     "latter"        "human"        
+## [129] "common"        "certain"       "existence"     "meaning"      
+## [133] "view"          "soul"          "body"          "less"         
+## [137] "value"         "idea"          "end"           "necessary"    
+## [141] "thus"          "within"        "pure"          "objects"      
+## [145] "natural"       "relation"      "world"         "self"         
+## [149] "universal"     "concept"       "consciousness" "labour"
+\end{verbatim}
+
+We can draw a wordcloud:
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-10-1.pdf}
+
+One may argue that in the wordcloud, some words do not carry too much
+meaning in the setting. Therefore we use tf--idf instead of the
+frequencies of the term as entries, tf-idf measures the relative
+importance of a word to a document.
+
+\begin{verbatim}
+## <<DocumentTermMatrix (documents: 360808, terms: 4)>>
+## Non-/sparse entries: 104660/1338572
+## Sparsity           : 93%
+## Maximal term length: 4
+## Weighting          : term frequency - inverse document frequency (normalized) (tf-idf)
+\end{verbatim}
+
+The new wordcloud is more informative, only gives us 4 words.
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-12-1.pdf}
+
+We then try to see the average sentence length group by school and the
+overall distribution of sentence length. We can see that Capitalism and
+Empiricism has the longest sentence length while Plato, Analytic, and
+Nietzsche has the shortest.
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-13-1.pdf}
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-13-2.pdf}
+
+We plot violin plots of sentence length group by school and author to
+see the distribution.
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-14-1.pdf}
+
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-15-1.pdf}
+
+\hypertarget{sentiment-analysis}{%
+\subsection{Sentiment Analysis}\label{sentiment-analysis}}
+
+In this section we break down the data set by school and create
+wordlcouds based on tf-idf criteria and perform sentiment analysis to
+see the overall sentiment of this school.
+
+Plato
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   negative positive sentiment
+##      <dbl>    <dbl>     <dbl>
+## 1    21186    32083     10897
+\end{verbatim}
+
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-16-1.pdf}
+
+Aristotle
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   negative positive sentiment
+##      <dbl>    <dbl>     <dbl>
+## 1    29979    35453      5474
+\end{verbatim}
+
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-17-1.pdf}
+
+Empiricism
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   negative positive sentiment
+##      <dbl>    <dbl>     <dbl>
+## 1    17213    20541      3328
+\end{verbatim}
+
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-18-1.pdf}
+
+Rationalism
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   negative positive sentiment
+##      <dbl>    <dbl>     <dbl>
+## 1    18770    24852      6082
+\end{verbatim}
+
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-19-1.pdf}
+
+Analytic
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   negative positive sentiment
+##      <dbl>    <dbl>     <dbl>
+## 1    23880    23821       -59
+\end{verbatim}
+
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-20-1.pdf}
+
+Continental
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   negative positive sentiment
+##      <dbl>    <dbl>     <dbl>
+## 1    33451    22008    -11443
+\end{verbatim}
+
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-21-1.pdf}
+
+Phenomenology
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   negative positive sentiment
+##      <dbl>    <dbl>     <dbl>
+## 1    13338    14552      1214
+\end{verbatim}
+
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-22-1.pdf}
+
+German\_idealism
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   negative positive sentiment
+##      <dbl>    <dbl>     <dbl>
+## 1    25103    33830      8727
+\end{verbatim}
+
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-23-1.pdf}
+
+Communism
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   negative positive sentiment
+##      <dbl>    <dbl>     <dbl>
+## 1    10390    10934       544
+\end{verbatim}
+
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-24-1.pdf}
+
+Capitalism
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   negative positive sentiment
+##      <dbl>    <dbl>     <dbl>
+## 1    11440    17491      6051
+\end{verbatim}
+
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-25-1.pdf}
+
+Nietzsche
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   negative positive sentiment
+##      <dbl>    <dbl>     <dbl>
+## 1    12445    12580       135
+\end{verbatim}
+
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-26-1.pdf}
+
+Stoicism
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   negative positive sentiment
+##      <dbl>    <dbl>     <dbl>
+## 1     2078     2342       264
+\end{verbatim}
+
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-27-1.pdf}
+
+Feminism
+
+\begin{verbatim}
+## # A tibble: 1 x 3
+##   negative positive sentiment
+##      <dbl>    <dbl>     <dbl>
+## 1    20311    20438       127
+\end{verbatim}
+
+\includegraphics{Proj1_R_Notebook_files/figure-latex/unnamed-chunk-28-1.pdf}
+
+\end{document}

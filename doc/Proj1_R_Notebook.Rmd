@@ -1,0 +1,412 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+#### This report aims at finding out what are the frequent words of different schools of Philosophy and the overall sentiments respectively. The data used is the dataset for Philosophy Data Project. It contains 11 columns and 360808 unique values
+  
+
+```{r,message=FALSE}
+setwd("~/Downloads")
+library(tidyverse)
+library(dplyr)
+library(tm)
+library(wordcloud)
+library(RColorBrewer)
+library(beeswarm)
+library(sentimentr)
+library(tidytext)
+library(glue)
+library(syuzhet)
+library(caret)
+library(RTextTools)
+df<-read.csv("philosophy_data.csv")
+```
+
+## Exploratory Data Analysis
+
+First,I examined the data to see the columns and total number of rows, and see the unique authors, schools and title, and then process the raw textual data by cleaning data, removing stopwords and creating a tidy version of texts which is saved in $ output $ file.
+
+```{r}
+dim(df)
+colnames(df)
+```
+
+```{r}
+unique(df[c('author')])
+unique(df[c('school')])
+unique(df[c('title')])
+```
+
+
+Visualize the data group by school to get a sense of how many values of each school in contained in this dataset. We can see that analytic, aristotle, germain_idealism, and plato has the most counts among the 11 schools.
+```{r,echo = FALSE}
+ggplot(data = df,aes(x = school))+
+  geom_bar()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+To use the tm package we first transfrom the dataset to a corpus and next we normalize the texts in the sentence_lowered using a series of pre-processing steps: 1. Remove numbers 2. Remove punctuation marks and stopwords 3. Remove extra whitespaces. After the above transformations the first review looks like:
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+sent<-Corpus(VectorSource(df$sentence_lowered))
+sent = tm_map(sent, removePunctuation)
+sent = tm_map(sent, removeWords, c("the", "and", stopwords("english")))
+sent =  tm_map(sent, stripWhitespace)
+inspect(sent[1])
+```
+
+
+To analyze the textual data, we use a Document-Term Matrix (DTM) representation.To reduce the dimension of the DTM, we can emove the less frequent terms such that the sparsity is less than 0.99. 
+```{r,echo = FALSE}
+sent_dtm <- DocumentTermMatrix(sent)
+sent_dtm
+inspect(sent_dtm[500:505, 500:505])
+```
+
+```{r,echo = FALSE}
+sent_dtm = removeSparseTerms(sent_dtm, 0.99)
+sent_dtm
+```
+
+
+The first review now looks like: 
+```{r,echo = FALSE}
+inspect(sent_dtm[1,1:20])
+```
+
+
+Inspect the frequent terms: 
+```{r,echo = FALSE}
+findFreqTerms(sent_dtm, 1000)
+```
+
+
+We can draw a wordcloud:
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+freq = data.frame(sort(colSums(as.matrix(sent_dtm)), decreasing=TRUE))
+wordcloud(rownames(freq), freq[,1], max.words=50, colors=brewer.pal(1, "Dark2"))
+```
+
+One may argue that in the wordcloud, some words do not carry too much meaning in the setting. Therefore we use tf–idf instead of the frequencies of the term as entries, tf-idf measures the relative importance of a word to a document.
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+sent_dtm_tfidf <- DocumentTermMatrix(sent, control = list(weighting = weightTfIdf))
+sent_dtm_tfidf = removeSparseTerms(sent_dtm_tfidf, 0.95)
+sent_dtm_tfidf
+```
+
+
+The new wordcloud is more informative, only gives us 4 words. 
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+freq = data.frame(sort(colSums(as.matrix(sent_dtm_tfidf)), decreasing=TRUE))
+wordcloud(rownames(freq), freq[,1], max.words=100, colors=brewer.pal(1, "Dark2"))
+```
+
+We then try to see the average sentence length group by school and the overall distribution of sentence length. We can see that Capitalism and Empiricism has the longest sentence length while Plato, Analytic, and Nietzsche has the shortest. 
+```{r,warning=FALSE,echo = FALSE}
+length_by_school<- df%>%
+  group_by(school)%>% 
+  summarize_at(vars(sentence_length),list(mean_length = mean))
+length_by_school<-as.data.frame(length_by_school)
+ggplot(length_by_school, aes(school, mean_length))+
+  geom_point()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggplot(df, aes(x = sentence_length))+
+  geom_histogram(binwidth = 50)
+```
+
+We plot violin plots of sentence length group by school and author to see the distribution. 
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+ggplot(df, aes(x=school, y=sentence_length)) + 
+  geom_violin()+
+  stat_summary(fun.data="mean_sdl", mult=1, 
+                 geom="crossbar", width=0.2 )+
+  stat_summary(fun.data=mean_sdl, mult=1, 
+                 geom="pointrange", color="red")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+```{r,echo = FALSE}
+ggplot(df, aes(x=author, y=sentence_length)) + 
+  geom_violin()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+## Sentiment Analysis 
+
+In this section we break down the data set by school and create wordclouds based on tf-idf criteria and perform sentiment analysis to see the overall sentiment of this school. We use Bing which categorizes words in a binary fashion into positive and negative categories. 
+
+### Plato
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+df_plato=df[df$school=='plato',]
+tokens_plato <- data_frame(text = df_plato$tokenized_txt) %>% unnest_tokens(word, text)
+tokens_plato %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+sent<-Corpus(VectorSource(df_plato$sentence_lowered))
+sent = tm_map(sent, removePunctuation)
+sent = tm_map(sent, removeWords, c("the", "and", stopwords("english")))
+sent =  tm_map(sent, stripWhitespace)
+sent_dtm_tfidf <- DocumentTermMatrix(sent, control = list(weighting = weightTfIdf))
+sent_dtm_tfidf = removeSparseTerms(sent_dtm_tfidf, 0.95)
+freq = data.frame(sort(colSums(as.matrix(sent_dtm_tfidf)), decreasing=TRUE))
+wordcloud(rownames(freq), freq[,1], max.words=100, colors=brewer.pal(1, "Dark2"))
+```
+
+### Aristotle
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+df_aris=df[df$school=='aristotle',]
+tokens_aris<- data_frame(text = df_aris$tokenized_txt) %>% unnest_tokens(word, text)
+tokens_aris %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+sent<-Corpus(VectorSource(df_aris$sentence_lowered))
+sent = tm_map(sent, removePunctuation)
+sent = tm_map(sent, removeWords, c("the", "and", stopwords("english")))
+sent =  tm_map(sent, stripWhitespace)
+sent_dtm_tfidf <- DocumentTermMatrix(sent, control = list(weighting = weightTfIdf))
+sent_dtm_tfidf = removeSparseTerms(sent_dtm_tfidf, 0.95)
+freq = data.frame(sort(colSums(as.matrix(sent_dtm_tfidf)), decreasing=TRUE))
+wordcloud(rownames(freq), freq[,1], max.words=100, colors=brewer.pal(1, "Dark2"))
+```
+
+### Empiricism
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+df_empi=df[df$school=='empiricism',]
+tokens_empi<- data_frame(text = df_empi$tokenized_txt) %>% unnest_tokens(word, text)
+tokens_empi %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+sent<-Corpus(VectorSource(df_empi$sentence_lowered))
+sent = tm_map(sent, removePunctuation)
+sent = tm_map(sent, removeWords, c("the", "and", stopwords("english")))
+sent =  tm_map(sent, stripWhitespace)
+sent_dtm_tfidf <- DocumentTermMatrix(sent, control = list(weighting = weightTfIdf))
+sent_dtm_tfidf = removeSparseTerms(sent_dtm_tfidf, 0.95)
+freq = data.frame(sort(colSums(as.matrix(sent_dtm_tfidf)), decreasing=TRUE))
+wordcloud(rownames(freq), freq[,1], max.words=100, colors=brewer.pal(1, "Dark2"))
+```
+
+### Rationalism
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+df_ra=df[df$school=='rationalism',]
+tokens_ra<- data_frame(text = df_ra$tokenized_txt) %>% unnest_tokens(word, text)
+tokens_ra %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+sent<-Corpus(VectorSource(df_ra$sentence_lowered))
+sent = tm_map(sent, removePunctuation)
+sent = tm_map(sent, removeWords, c("the", "and", stopwords("english")))
+sent =  tm_map(sent, stripWhitespace)
+sent_dtm_tfidf <- DocumentTermMatrix(sent, control = list(weighting = weightTfIdf))
+sent_dtm_tfidf = removeSparseTerms(sent_dtm_tfidf, 0.95)
+freq = data.frame(sort(colSums(as.matrix(sent_dtm_tfidf)), decreasing=TRUE))
+wordcloud(rownames(freq), freq[,1], max.words=100, colors=brewer.pal(1, "Dark2"))
+```
+
+### Analytic
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+df_anlt=df[df$school=='analytic',]
+tokens_anlt<- data_frame(text = df_anlt$tokenized_txt) %>% unnest_tokens(word, text)
+tokens_anlt %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+sent<-Corpus(VectorSource(df_anlt$sentence_lowered))
+sent = tm_map(sent, removePunctuation)
+sent = tm_map(sent, removeWords, c("the", "and", stopwords("english")))
+sent =  tm_map(sent, stripWhitespace)
+sent_dtm_tfidf <- DocumentTermMatrix(sent, control = list(weighting = weightTfIdf))
+sent_dtm_tfidf = removeSparseTerms(sent_dtm_tfidf, 0.95)
+freq = data.frame(sort(colSums(as.matrix(sent_dtm_tfidf)), decreasing=TRUE))
+wordcloud(rownames(freq), freq[,1], max.words=100, colors=brewer.pal(1, "Dark2"))
+```
+
+### Continental
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+df_cont=df[df$school=='continental',]
+tokens_cont<- data_frame(text = df_cont$tokenized_txt) %>% unnest_tokens(word, text)
+tokens_cont %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+sent<-Corpus(VectorSource(df_cont$sentence_lowered))
+sent = tm_map(sent, removePunctuation)
+sent = tm_map(sent, removeWords, c("the", "and", stopwords("english")))
+sent =  tm_map(sent, stripWhitespace)
+sent_dtm_tfidf <- DocumentTermMatrix(sent, control = list(weighting = weightTfIdf))
+sent_dtm_tfidf = removeSparseTerms(sent_dtm_tfidf, 0.95)
+freq = data.frame(sort(colSums(as.matrix(sent_dtm_tfidf)), decreasing=TRUE))
+wordcloud(rownames(freq), freq[,1], max.words=100, colors=brewer.pal(1, "Dark2"))
+```
+
+### Phenomenology
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+df_phen=df[df$school=='phenomenology',]
+tokens_phen<- data_frame(text = df_phen$tokenized_txt) %>% unnest_tokens(word, text)
+tokens_phen %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+sent<-Corpus(VectorSource(df_phen$sentence_lowered))
+sent = tm_map(sent, removePunctuation)
+sent = tm_map(sent, removeWords, c("the", "and", stopwords("english")))
+sent =  tm_map(sent, stripWhitespace)
+sent_dtm_tfidf <- DocumentTermMatrix(sent, control = list(weighting = weightTfIdf))
+sent_dtm_tfidf = removeSparseTerms(sent_dtm_tfidf, 0.95)
+freq = data.frame(sort(colSums(as.matrix(sent_dtm_tfidf)), decreasing=TRUE))
+wordcloud(rownames(freq), freq[,1], max.words=100, colors=brewer.pal(1, "Dark2"))
+```
+
+### German_idealism
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+df_gi=df[df$school=='german_idealism',]
+tokens_gi<- data_frame(text = df_gi$tokenized_txt) %>% unnest_tokens(word, text)
+tokens_gi %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+sent<-Corpus(VectorSource(df_gi$sentence_lowered))
+sent = tm_map(sent, removePunctuation)
+sent = tm_map(sent, removeWords, c("the", "and", stopwords("english")))
+sent =  tm_map(sent, stripWhitespace)
+sent_dtm_tfidf <- DocumentTermMatrix(sent, control = list(weighting = weightTfIdf))
+sent_dtm_tfidf = removeSparseTerms(sent_dtm_tfidf, 0.95)
+freq = data.frame(sort(colSums(as.matrix(sent_dtm_tfidf)), decreasing=TRUE))
+wordcloud(rownames(freq), freq[,1], max.words=100, colors=brewer.pal(1, "Dark2"))
+```
+
+### Communism
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+df_com=df[df$school=='communism',]
+tokens_com<- data_frame(text = df_com$tokenized_txt) %>% unnest_tokens(word, text)
+tokens_com %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+sent<-Corpus(VectorSource(df_com$sentence_lowered))
+sent = tm_map(sent, removePunctuation)
+sent = tm_map(sent, removeWords, c("the", "and", stopwords("english")))
+sent =  tm_map(sent, stripWhitespace)
+sent_dtm_tfidf <- DocumentTermMatrix(sent, control = list(weighting = weightTfIdf))
+sent_dtm_tfidf = removeSparseTerms(sent_dtm_tfidf, 0.95)
+freq = data.frame(sort(colSums(as.matrix(sent_dtm_tfidf)), decreasing=TRUE))
+wordcloud(rownames(freq), freq[,1], max.words=100, colors=brewer.pal(1, "Dark2"))
+```
+
+### Capitalism
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+df_cap=df[df$school=='capitalism',]
+tokens_cap<- data_frame(text = df_cap$tokenized_txt) %>% unnest_tokens(word, text)
+tokens_cap %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+sent<-Corpus(VectorSource(df_cap$sentence_lowered))
+sent = tm_map(sent, removePunctuation)
+sent = tm_map(sent, removeWords, c("the", "and", stopwords("english")))
+sent =  tm_map(sent, stripWhitespace)
+sent_dtm_tfidf <- DocumentTermMatrix(sent, control = list(weighting = weightTfIdf))
+sent_dtm_tfidf = removeSparseTerms(sent_dtm_tfidf, 0.95)
+freq = data.frame(sort(colSums(as.matrix(sent_dtm_tfidf)), decreasing=TRUE))
+wordcloud(rownames(freq), freq[,1], max.words=100, colors=brewer.pal(1, "Dark2"))
+```
+
+### Nietzsche
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+df_nie=df[df$school=='nietzsche',]
+tokens_nie<- data_frame(text = df_nie$tokenized_txt) %>% unnest_tokens(word, text)
+tokens_nie %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+sent<-Corpus(VectorSource(df_nie$sentence_lowered))
+sent = tm_map(sent, removePunctuation)
+sent = tm_map(sent, removeWords, c("the", "and", stopwords("english")))
+sent =  tm_map(sent, stripWhitespace)
+sent_dtm_tfidf <- DocumentTermMatrix(sent, control = list(weighting = weightTfIdf))
+sent_dtm_tfidf = removeSparseTerms(sent_dtm_tfidf, 0.95)
+freq = data.frame(sort(colSums(as.matrix(sent_dtm_tfidf)), decreasing=TRUE))
+wordcloud(rownames(freq), freq[,1], max.words=100, colors=brewer.pal(1, "Dark2"))
+```
+
+### Stoicism
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+df_sto=df[df$school=='stoicism',]
+tokens_sto<- data_frame(text = df_sto$tokenized_txt) %>% unnest_tokens(word, text)
+tokens_sto %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+sent<-Corpus(VectorSource(df_sto$sentence_lowered))
+sent = tm_map(sent, removePunctuation)
+sent = tm_map(sent, removeWords, c("the", "and", stopwords("english")))
+sent =  tm_map(sent, stripWhitespace)
+sent_dtm_tfidf <- DocumentTermMatrix(sent, control = list(weighting = weightTfIdf))
+sent_dtm_tfidf = removeSparseTerms(sent_dtm_tfidf, 0.95)
+freq = data.frame(sort(colSums(as.matrix(sent_dtm_tfidf)), decreasing=TRUE))
+wordcloud(rownames(freq), freq[,1], max.words=100, colors=brewer.pal(1, "Dark2"))
+```
+
+### Feminism
+```{r,warning=FALSE,message=FALSE,echo = FALSE}
+df_fem=df[df$school=='feminism',]
+tokens_fem<- data_frame(text = df_fem$tokenized_txt) %>% unnest_tokens(word, text)
+tokens_fem %>% 
+  inner_join(get_sentiments("bing")) %>% 
+  count(sentiment) %>% 
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+sent<-Corpus(VectorSource(df_fem$sentence_lowered))
+sent = tm_map(sent, removePunctuation)
+sent = tm_map(sent, removeWords, c("the", "and", stopwords("english")))
+sent =  tm_map(sent, stripWhitespace)
+sent_dtm_tfidf <- DocumentTermMatrix(sent, control = list(weighting = weightTfIdf))
+sent_dtm_tfidf = removeSparseTerms(sent_dtm_tfidf, 0.95)
+freq = data.frame(sort(colSums(as.matrix(sent_dtm_tfidf)), decreasing=TRUE))
+wordcloud(rownames(freq), freq[,1], max.words=100, colors=brewer.pal(1, "Dark2"))
+```
+
+### Conclusion
+We can see that the overall sentiment is negative for Analytic and Continental and positive for all other schools. 
+Amoung these, Continental contains the most nagetive words relative to positive words. 
+German_idealism contains the most positive words relative to negative words.
+Analytic, Feminism, and Nietzsche have approximately same proportion. 
+
+
+
+
+
